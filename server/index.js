@@ -15,6 +15,8 @@ const balances = {
   "0x2": 50,
   "0x3": 75,
 };
+
+// storing seed phrases
 const seedphrases = {
   "0x1": [],
 };
@@ -23,6 +25,8 @@ app.get("/balance/:address", (req, res) => {
   const balance = balances[address] || 0;
   res.send({ balance });
 });
+
+// add a create wallet endpoint
 app.post("/create", (req, res) => {
   const { seedPhrase, address } = req.body;
   const hexAddress = address;
@@ -30,22 +34,27 @@ app.post("/create", (req, res) => {
   setInitialBalance(hexAddress);
   res.send({ balance: balances[hexAddress] });
 });
-app.get("/balance", (req, res) => {
-  res.send({ balances: balances });
-});
 
+// made some adjustments to /send endpoints
 app.post("/send", (req, res) => {
   const { sender, recipient, amount, seed10, privateKey, message } = req.body;
-  const messageHash = sha256(utf8ToBytes(message));
+  const messageHash = sha256(utf8ToBytes(message)); // hashing
   setInitialBalance(recipient);
 
+  // check for seedphares and if user provided a correct one
   if (seedphrases[sender] && seedphrases[sender][9] === seed10) {
     const senderPublicKey = toHex(secp256k1.getPublicKey(privateKey));
-    const isPrivkeyCorrect = sender === senderPublicKey;
+    const isPrivkeyCorrect = sender === senderPublicKey; // comparing private key via its public key
+
     if (isPrivkeyCorrect) {
-      const signature = secp256k1.sign(messageHash, privateKey);
-      const isSigned = secp256k1.verify(signature, messageHash, publicKey);
+      const signature = secp256k1.sign(messageHash, privateKey); // signing message
+      const isSigned = secp256k1.verify(
+        signature,
+        messageHash,
+        senderPublicKey
+      );
       if (isSigned) {
+        // performing transaction after it is signed
         if (balances[sender] < amount) {
           res.status(400).send({ message: "Not enough funds!" });
         } else {
@@ -55,10 +64,10 @@ app.post("/send", (req, res) => {
         }
       }
     } else {
-      res.send({ message: "Wrong or no Private Key" });
+      res.status(400).send({ message: "Wrong or no Private Key" });
     }
   } else {
-    res.send({ message: "wrong seed Phrase" });
+    res.status(400).send({ message: "wrong seed Phrase" });
   }
 });
 

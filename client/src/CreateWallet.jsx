@@ -8,18 +8,19 @@ import server from "./server";
 export const CreateWallet = ({ privateKey, setPrivateKey }) => {
   const [seedWords, setSeedWords] = useState([]);
   const [publicKey, setPublicKey] = useState("");
+  const [show, setShow] = useState(false); //  to toggle phrase Visibility
 
   const create = async () => {
     const randomWord = () => {
-      return words[Math.floor(Math.random() * words.length)];
+      return words[Math.floor(Math.random() * words.length)]; // creating random mnemonics
     };
 
     let newSeedWords = [];
     for (let i = 0; i < 10; i++) {
       newSeedWords.push(randomWord());
     }
-    const mnemonic = newSeedWords.join(",");
-    const newPrivateKey = sha256(utf8ToBytes(mnemonic));
+    const mnemonic = newSeedWords.join(","); // changing mnemonic to string
+    const newPrivateKey = sha256(utf8ToBytes(mnemonic)); // privatekey from mnemonic
     const privateKeyHex = toHex(newPrivateKey);
     setSeedWords(() => [...newSeedWords]);
     setPrivateKey(() => privateKeyHex);
@@ -28,6 +29,7 @@ export const CreateWallet = ({ privateKey, setPrivateKey }) => {
     const publicKeyHex = toHex(publicKeyBuffer);
     setPublicKey(() => publicKeyHex);
     try {
+      // creating the wallet
       await server.post("/create", {
         seedPhrase: newSeedWords,
         address: publicKeyHex,
@@ -38,17 +40,26 @@ export const CreateWallet = ({ privateKey, setPrivateKey }) => {
   return (
     <div className="transfer container">
       <h1>Create wallet</h1>
+
+      {/* Check for private key */}
       {privateKey ? (
         <div>
           <div>
             <h3>This are your Seed words</h3>
             <div className="phrase">
               {seedWords.map((word, index) => (
-                <p key={index}>{word}</p>
+                <p className={show ? "seedphraseblur" : ""} key={index}>
+                  {word}
+                </p>
               ))}
+              <input
+                onClick={() => setShow(!show)}
+                className="button"
+                type="button"
+                value={show ? "hide phrase" : "show phrase"}
+              />
             </div>
             <p className="wrap">Your address is: {publicKey}</p>
-            <input className="button" type="button" value="Transfer" />
           </div>
         </div>
       ) : (

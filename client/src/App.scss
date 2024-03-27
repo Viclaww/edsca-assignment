@@ -24,6 +24,7 @@ label {
 
 .container {
   flex-grow: 1;
+  width: 25%;
   margin: 0 20px;
   background-color: #fff;
   border: 1px solid #cbd5e0;
@@ -95,4 +96,8 @@ input {
 }
 .wrap {
   text-wrap: wrap;
+}
+
+.seedphraseblur {
+  filter: blur(10px);
 }

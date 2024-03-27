@@ -14,6 +14,7 @@ function Transfer({ address, setBalance, privateKey }) {
     evt.preventDefault();
 
     try {
+      // Added private key, a message and the tenth seed phrase of a wallet
       const {
         data: { balance },
       } = await server.post(`send`, {
