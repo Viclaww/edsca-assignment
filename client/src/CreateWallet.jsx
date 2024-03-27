@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { words } from "./word";
 import { secp256k1 } from "ethereum-cryptography/secp256k1.js";
 import { sha256 } from "ethereum-cryptography/sha256.js";
-import { toHex } from "ethereum-cryptography/utils";
+import { bytesToHex as toHex } from "ethereum-cryptography/utils.js";
 import { utf8ToBytes } from "ethereum-cryptography/utils.js";
-export const CreateWallet = () => {
+import server from "./server";
+export const CreateWallet = ({ privateKey, setPrivateKey }) => {
   const [seedWords, setSeedWords] = useState([]);
-  const [privateKey, setPrivateKey] = useState("");
   const [publicKey, setPublicKey] = useState("");
 
-  const create = () => {
+  const create = async () => {
     const randomWord = () => {
       return words[Math.floor(Math.random() * words.length)];
     };
@@ -20,14 +20,21 @@ export const CreateWallet = () => {
     }
     const mnemonic = newSeedWords.join(",");
     const newPrivateKey = sha256(utf8ToBytes(mnemonic));
-
-    setSeedWords(newSeedWords);
-    setPrivateKey(newPrivateKey);
+    const privateKeyHex = toHex(newPrivateKey);
+    setSeedWords(() => [...newSeedWords]);
+    setPrivateKey(() => privateKeyHex);
 
     const publicKeyBuffer = secp256k1.getPublicKey(newPrivateKey);
     const publicKeyHex = toHex(publicKeyBuffer);
-    setPublicKey(publicKeyHex);
+    setPublicKey(() => publicKeyHex);
+    try {
+      await server.post("/create", {
+        seedPhrase: newSeedWords,
+        address: publicKeyHex,
+      });
+    } catch (error) {}
   };
+
   return (
     <div className="transfer container">
       <h1>Create wallet</h1>
@@ -40,7 +47,7 @@ export const CreateWallet = () => {
                 <p key={index}>{word}</p>
               ))}
             </div>
-            <p>Your address is: {publicKey}</p>
+            <p className="wrap">Your address is: {publicKey}</p>
             <input className="button" type="button" value="Transfer" />
           </div>
         </div>
