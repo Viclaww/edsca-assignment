@@ -1,4 +1,5 @@
 const express = require("express");
+const secp = require("ethereum-cryptography");
 const app = express();
 const cors = require("cors");
 const port = 3042;
@@ -16,6 +17,10 @@ app.get("/balance/:address", (req, res) => {
   const { address } = req.params;
   const balance = balances[address] || 0;
   res.send({ balance });
+});
+
+app.post("/create", (req, res) => {
+  const { secondPhrase, sender } = req;
 });
 
 app.post("/send", (req, res) => {

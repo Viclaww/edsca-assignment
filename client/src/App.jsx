@@ -2,6 +2,7 @@ import Wallet from "./Wallet";
 import Transfer from "./Transfer";
 import "./App.scss";
 import { useState } from "react";
+import { CreateWallet } from "./CreateWallet";
 
 function App() {
   const [balance, setBalance] = useState(0);
@@ -9,6 +10,7 @@ function App() {
 
   return (
     <div className="app">
+      <CreateWallet />
       <Wallet
         balance={balance}
         setBalance={setBalance}
